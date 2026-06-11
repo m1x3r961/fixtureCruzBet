@@ -1,6 +1,7 @@
 # Dependencias generadas (no editar manualmente)
 .dart_tool/
 build/
+!build/web/
 
 # Variables de entorno sensibles
 .env
