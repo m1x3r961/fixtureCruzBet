@@ -119,23 +119,30 @@ class _FixtureScreenState extends ConsumerState<FixtureScreen>
 // ---------------------------------------------------------------------------
 // Lista de partidos filtrable por stage
 // ---------------------------------------------------------------------------
-class _MatchList extends ConsumerWidget {
+class _MatchList extends ConsumerStatefulWidget {
   final String? stage;
   const _MatchList({this.stage});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final matchesAsync = stage == null
+  ConsumerState<_MatchList> createState() => _MatchListState();
+}
+
+class _MatchListState extends ConsumerState<_MatchList> {
+  String? _selectedGroup;
+
+  @override
+  Widget build(BuildContext context) {
+    final matchesAsync = widget.stage == null
         ? ref.watch(fixtureControllerProvider)
-        : ref.watch(matchesByStageControllerProvider(stage!));
+        : ref.watch(matchesByStageControllerProvider(widget.stage!));
 
     return matchesAsync.when(
       loading: () => const MatchListShimmer(),
       error: (e, _) => ErrorRetryWidget(
         message: 'No se pudieron cargar los partidos.\n$e',
-        onRetry: () => stage == null
+        onRetry: () => widget.stage == null
             ? ref.invalidate(fixtureControllerProvider)
-            : ref.invalidate(matchesByStageControllerProvider(stage!)),
+            : ref.invalidate(matchesByStageControllerProvider(widget.stage!)),
       ),
       data: (matches) {
         if (matches.isEmpty) {
@@ -147,21 +154,116 @@ class _MatchList extends ConsumerWidget {
           );
         }
 
+        List<Match> displayMatches = matches;
+        Widget? filterWidget;
+
+        if (widget.stage == 'group') {
+          final groups = matches
+              .map((m) => m.groupName)
+              .where((g) => g != null)
+              .cast<String>()
+              .toSet()
+              .toList()
+            ..sort();
+
+          if (_selectedGroup != null) {
+            displayMatches =
+                matches.where((m) => m.groupName == _selectedGroup).toList();
+          }
+
+          filterWidget = SizedBox(
+            height: 60,
+            child: ListView(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(right: 8),
+                  child: ChoiceChip(
+                    label: const Text('Todos'),
+                    selected: _selectedGroup == null,
+                    onSelected: (selected) {
+                      if (selected) setState(() => _selectedGroup = null);
+                    },
+                    selectedColor: Theme.of(context)
+                        .colorScheme
+                        .primary
+                        .withValues(alpha: 0.2),
+                    side: BorderSide(
+                      color: _selectedGroup == null
+                          ? Theme.of(context).colorScheme.primary
+                          : Colors.white12,
+                    ),
+                    backgroundColor: Colors.transparent,
+                    labelStyle: TextStyle(
+                      color: _selectedGroup == null
+                          ? Theme.of(context).colorScheme.primary
+                          : Colors.white70,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                ...groups.map((g) {
+                  final isSelected = _selectedGroup == g;
+                  // Extraer solo la letra del grupo para que no ocupe tanto espacio
+                  final labelText = g.toUpperCase().replaceAll('GRUPO ', 'G-');
+                  return Padding(
+                    padding: const EdgeInsets.only(right: 8),
+                    child: ChoiceChip(
+                      label: Text(labelText),
+                      selected: isSelected,
+                      onSelected: (selected) {
+                        setState(() => _selectedGroup = selected ? g : null);
+                      },
+                      selectedColor: Theme.of(context)
+                          .colorScheme
+                          .primary
+                          .withValues(alpha: 0.2),
+                      side: BorderSide(
+                        color: isSelected
+                            ? Theme.of(context).colorScheme.primary
+                            : Colors.white12,
+                      ),
+                      backgroundColor: Colors.transparent,
+                      labelStyle: TextStyle(
+                        color: isSelected
+                            ? Theme.of(context).colorScheme.primary
+                            : Colors.white70,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  );
+                }),
+              ],
+            ),
+          );
+        }
+
         return RefreshIndicator(
           onRefresh: () async {
-            stage == null
+            widget.stage == null
                 ? ref.invalidate(fixtureControllerProvider)
-                : ref.invalidate(matchesByStageControllerProvider(stage!));
+                : ref.invalidate(matchesByStageControllerProvider(widget.stage!));
           },
-          child: ListView.builder(
-            padding: const EdgeInsets.only(top: 16, bottom: 100), // Padding ajustado
-            itemCount: matches.length,
-            itemBuilder: (context, index) {
-              return _MatchCard(match: matches[index])
-                  .animate()
-                  .fadeIn(duration: 400.ms, delay: Duration(milliseconds: index * 40))
-                  .slideY(begin: 0.1, curve: Curves.easeOutQuad);
-            },
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              if (filterWidget != null) filterWidget,
+              Expanded(
+                child: ListView.builder(
+                  padding: const EdgeInsets.only(top: 8, bottom: 100),
+                  itemCount: displayMatches.length,
+                  itemBuilder: (context, index) {
+                    return _MatchCard(match: displayMatches[index])
+                        .animate()
+                        .fadeIn(
+                            duration: 400.ms,
+                            delay: Duration(milliseconds: index * 20))
+                        .slideY(begin: 0.05, curve: Curves.easeOutQuad);
+                  },
+                ),
+              ),
+            ],
           ),
         );
       },
