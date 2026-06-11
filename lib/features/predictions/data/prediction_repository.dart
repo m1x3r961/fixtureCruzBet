@@ -36,11 +36,12 @@ class PredictionRepository implements IPredictionRepository {
 
   @override
   Future<List<Prediction>> getUserPredictions() async {
-    _requireUser;
+    final user = _requireUser;
 
     final response = await _client
         .from('predictions')
         .select()
+        .eq('user_id', user.id)
         .order('created_at', ascending: false);
 
     return response.map((row) => Prediction.fromJson(row)).toList();
@@ -48,12 +49,13 @@ class PredictionRepository implements IPredictionRepository {
 
   @override
   Future<Prediction?> getPredictionForMatch(String matchId) async {
-    _requireUser;
+    final user = _requireUser;
 
     final response = await _client
         .from('predictions')
         .select()
         .eq('match_id', matchId)
+        .eq('user_id', user.id)
         .maybeSingle();
 
     if (response == null) return null;
