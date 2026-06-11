@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/router/app_router.dart';
-import '../../../core/widgets/common_widgets.dart';
+import '../../auth/presentation/auth_controller.dart';
 import '../data/admin_repository.dart';
 
 class AdminDashboardScreen extends ConsumerWidget {
@@ -18,6 +18,15 @@ class AdminDashboardScreen extends ConsumerWidget {
         title: const Text('Admin Dashboard', style: TextStyle(fontWeight: FontWeight.bold)),
         backgroundColor: const Color(0xFF3D3D3D),
         elevation: 0,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout_outlined),
+            tooltip: 'Cerrar sesión',
+            onPressed: () {
+              ref.read(authControllerProvider.notifier).signOut();
+            },
+          ),
+        ],
       ),
       body: Container(
         decoration: BoxDecoration(

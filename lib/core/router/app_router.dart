@@ -58,6 +58,11 @@ GoRouter appRouter(Ref ref) {
           if (isAdmin && state.matchedLocation == AppRoutes.fixture) {
             return AppRoutes.admin;
           }
+
+          // Si NO es admin y está intentando entrar al admin dashboard
+          if (!isAdmin && state.matchedLocation.startsWith(AppRoutes.admin)) {
+            return AppRoutes.fixture;
+          }
         } else if (isOnLoginPage) {
            // Si apenas hizo login y el perfil no ha cargado, lo mandamos al fixture temporalmente,
            // o esperamos. Es mejor mandarlo al fixture, y si es admin el UI (o un listener) lo sacará.
