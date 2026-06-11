@@ -6,6 +6,9 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../features/auth/presentation/login_screen.dart';
 import '../../features/fixture/presentation/fixture_screen.dart';
+import '../../features/admin/presentation/admin_dashboard_screen.dart';
+import '../../features/admin/presentation/admin_user_detail_screen.dart';
+import '../../features/admin/domain/admin_models.dart';
 import '../providers/supabase_provider.dart';
 
 part 'app_router.g.dart';
@@ -16,6 +19,7 @@ part 'app_router.g.dart';
 abstract class AppRoutes {
   static const login = '/login';
   static const fixture = '/fixture';
+  static const admin = '/admin';
 }
 
 // ---------------------------------------------------------------------------
@@ -54,6 +58,25 @@ GoRouter appRouter(Ref ref) {
         pageBuilder: (context, state) => const NoTransitionPage(
           child: FixtureScreen(),
         ),
+      ),
+      GoRoute(
+        path: AppRoutes.admin,
+        name: 'admin',
+        pageBuilder: (context, state) => const NoTransitionPage(
+          child: AdminDashboardScreen(),
+        ),
+        routes: [
+          GoRoute(
+            path: 'user/:id',
+            name: 'admin_user_detail',
+            pageBuilder: (context, state) {
+              final userSummary = state.extra as UserSummary;
+              return NoTransitionPage(
+                child: AdminUserDetailScreen(userSummary: userSummary),
+              );
+            },
+          ),
+        ],
       ),
     ],
 

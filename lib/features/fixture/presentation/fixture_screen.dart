@@ -12,6 +12,7 @@ import '../domain/match_model.dart';
 import 'fixture_controller.dart';
 import 'widgets/score_input_dialog.dart';
 import '../../predictions/presentation/prediction_controller.dart';
+import '../../auth/data/profile_repository.dart';
 
 /// Pantalla principal del Fixture del Mundial.
 /// Muestra todos los partidos en tiempo real via Supabase Realtime con diseño premium.
@@ -62,6 +63,25 @@ class _FixtureScreenState extends ConsumerState<FixtureScreen>
         ).animate().fadeIn(duration: 600.ms).slideY(begin: -0.2, curve: Curves.easeOutQuad),
         centerTitle: true,
         actions: [
+          Consumer(
+            builder: (context, ref, child) {
+              final profileAsync = ref.watch(currentProfileProvider);
+              return profileAsync.maybeWhen(
+                data: (profile) {
+                  if (profile != null && profile.isAdmin) {
+                    return IconButton(
+                      icon: const Icon(Icons.admin_panel_settings),
+                      tooltip: 'Admin Dashboard',
+                      color: const Color(0xFF00E5FF),
+                      onPressed: () => context.push(AppRoutes.admin),
+                    );
+                  }
+                  return const SizedBox.shrink();
+                },
+                orElse: () => const SizedBox.shrink(),
+              );
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.logout_outlined),
             tooltip: 'Cerrar sesión',

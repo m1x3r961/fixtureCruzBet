@@ -12,6 +12,7 @@ part 'prediction_repository.g.dart';
 // ---------------------------------------------------------------------------
 abstract class IPredictionRepository {
   Future<List<Prediction>> getUserPredictions();
+  Future<List<Prediction>> getAllPredictions();
   Future<Prediction?> getPredictionForMatch(String matchId);
   Future<void> savePrediction(PredictionInput input);
   Future<void> updatePrediction(String predictionId, PredictionInput input);
@@ -42,6 +43,18 @@ class PredictionRepository implements IPredictionRepository {
         .from('predictions')
         .select()
         .eq('user_id', user.id)
+        .order('created_at', ascending: false);
+
+    return response.map((row) => Prediction.fromJson(row)).toList();
+  }
+
+  @override
+  Future<List<Prediction>> getAllPredictions() async {
+    _requireUser; // Solo requiere estar autenticado (el RLS bloquea si no es admin)
+
+    final response = await _client
+        .from('predictions')
+        .select()
         .order('created_at', ascending: false);
 
     return response.map((row) => Prediction.fromJson(row)).toList();

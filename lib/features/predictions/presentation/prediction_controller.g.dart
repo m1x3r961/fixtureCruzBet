@@ -6,7 +6,7 @@ part of 'prediction_controller.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$userPredictionsHash() => r'91e65b6e7e9c2d4466c6d91b50ee163acf567e97';
+String _$userPredictionsHash() => r'05093ee8fc12fdcff2c35d7af7faf75d3201ca2a';
 
 /// See also [userPredictions].
 @ProviderFor(userPredictions)
@@ -25,7 +25,7 @@ final userPredictionsProvider =
 // ignore: unused_element
 typedef UserPredictionsRef = AutoDisposeFutureProviderRef<List<Prediction>>;
 String _$predictionForMatchHash() =>
-    r'57c39abb1b57ef89d01e300edf026f1a9c425653';
+    r'3d9c79d739b75c5b5c4c1a740ff3b68e5c6c784a';
 
 /// Copied from Dart SDK
 class _SystemHash {
@@ -179,7 +179,7 @@ class _PredictionForMatchProviderElement
 }
 
 String _$predictionControllerHash() =>
-    r'75fd912d712ce4ee19ea0a97dfe15003741c9e17';
+    r'd1eb51866fb923d144a955d8bd610498bd517e72';
 
 /// See also [PredictionController].
 @ProviderFor(PredictionController)
