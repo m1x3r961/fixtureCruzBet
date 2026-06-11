@@ -3,6 +3,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../data/prediction_repository.dart';
 import '../domain/prediction_model.dart';
+import '../../../core/providers/supabase_provider.dart';
 
 part 'prediction_controller.g.dart';
 
@@ -73,12 +74,18 @@ class PredictionController extends _$PredictionController {
 // ---------------------------------------------------------------------------
 @riverpod
 Future<List<Prediction>> userPredictions(Ref ref) {
+  // Invalida la caché automáticamente cuando el estado de autenticación cambia
+  ref.watch(authStateStreamProvider);
+  
   final repo = ref.watch(predictionRepositoryProvider);
   return repo.getUserPredictions();
 }
 
 @riverpod
 Future<Prediction?> predictionForMatch(Ref ref, String matchId) {
+  // Invalida la caché automáticamente cuando el estado de autenticación cambia
+  ref.watch(authStateStreamProvider);
+  
   final repo = ref.watch(predictionRepositoryProvider);
   return repo.getPredictionForMatch(matchId);
 }
