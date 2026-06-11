@@ -9,6 +9,7 @@ import '../../features/fixture/presentation/fixture_screen.dart';
 import '../../features/admin/presentation/admin_dashboard_screen.dart';
 import '../../features/admin/presentation/admin_user_detail_screen.dart';
 import '../../features/admin/domain/admin_models.dart';
+import '../../features/auth/data/profile_repository.dart';
 import '../providers/supabase_provider.dart';
 
 part 'app_router.g.dart';
@@ -40,7 +41,30 @@ GoRouter appRouter(Ref ref) {
       final isOnLoginPage = state.matchedLocation == AppRoutes.login;
 
       if (!isLoggedIn && !isOnLoginPage) return AppRoutes.login;
-      if (isLoggedIn && isOnLoginPage) return AppRoutes.fixture;
+
+      if (isLoggedIn) {
+        final profileState = ref.read(currentProfileProvider);
+        
+        // Solo redirigir basándonos en roles si el perfil ya cargó
+        if (profileState.hasValue) {
+          final profile = profileState.value;
+          final isAdmin = profile?.isAdmin ?? false;
+
+          if (isOnLoginPage) {
+            return isAdmin ? AppRoutes.admin : AppRoutes.fixture;
+          }
+
+          // Si es admin y está en el fixture, forzarlo al admin dashboard
+          if (isAdmin && state.matchedLocation == AppRoutes.fixture) {
+            return AppRoutes.admin;
+          }
+        } else if (isOnLoginPage) {
+           // Si apenas hizo login y el perfil no ha cargado, lo mandamos al fixture temporalmente,
+           // o esperamos. Es mejor mandarlo al fixture, y si es admin el UI (o un listener) lo sacará.
+           // Pero podemos usar un listener en _AuthNotifier para notificar cuando el perfil cambia.
+           return AppRoutes.fixture;
+        }
+      }
       return null;
     },
 
@@ -91,10 +115,11 @@ GoRouter appRouter(Ref ref) {
 }
 
 // ---------------------------------------------------------------------------
-// Notifier que hace Listenable el stream de auth para que GoRouter reaccione
+// Notifier que hace Listenable el stream de auth y el perfil
 // ---------------------------------------------------------------------------
 class _AuthNotifier extends ChangeNotifier {
   _AuthNotifier(Ref ref) {
     ref.listen(authStateStreamProvider, (_, __) => notifyListeners());
+    ref.listen(currentProfileProvider, (_, __) => notifyListeners());
   }
 }

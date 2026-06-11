@@ -41,14 +41,25 @@ class _ScoreInputDialogState extends ConsumerState<ScoreInputDialog> {
       setState(() => _awayScore = _awayScore > 0 ? _awayScore - 1 : 0);
 
   Future<void> _submit() async {
-    await ref.read(predictionControllerProvider.notifier).submitPrediction(
-          matchId: widget.match.id,
-          homeScore: _homeScore,
-          awayScore: _awayScore,
-          existingPredictionId: widget.existingPrediction?.id,
+    try {
+      await ref.read(predictionControllerProvider.notifier).submitPrediction(
+            matchId: widget.match.id,
+            homeScore: _homeScore,
+            awayScore: _awayScore,
+            existingPredictionId: widget.existingPrediction?.id,
+          );
+      if (mounted) {
+        Navigator.of(context).pop();
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error al guardar: $e'),
+            backgroundColor: Colors.redAccent,
+          ),
         );
-    if (mounted) {
-      Navigator.of(context).pop();
+      }
     }
   }
 

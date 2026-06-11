@@ -149,7 +149,7 @@ class _PredictionDetailCard extends ConsumerWidget {
       margin: const EdgeInsets.only(bottom: 12),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.white12),
+        side: const BorderSide(color: Colors.white12),
       ),
       child: Padding(
         padding: const EdgeInsets.all(16),

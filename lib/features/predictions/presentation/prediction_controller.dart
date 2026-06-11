@@ -49,6 +49,7 @@ class PredictionController extends _$PredictionController {
       ref.invalidate(predictionForMatchProvider(matchId));
     } catch (e, st) {
       state = AsyncValue.error(e, st);
+      rethrow;
     }
   }
 
