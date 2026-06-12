@@ -12,6 +12,7 @@ import '../domain/match_model.dart';
 import 'fixture_controller.dart';
 import 'widgets/score_input_dialog.dart';
 import '../../predictions/presentation/prediction_controller.dart';
+import '../../predictions/domain/prediction_model.dart';
 import '../../auth/data/profile_repository.dart';
 
 /// Pantalla principal del Fixture del Mundial.
@@ -322,6 +323,7 @@ class _MatchCardState extends ConsumerState<_MatchCard> {
     final predictionAsync = ref.watch(predictionForMatchProvider(widget.match.id));
     final prediction = predictionAsync.valueOrNull;
     final hasPrediction = prediction != null;
+    final isLocked = !widget.match.isScheduled || widget.match.matchTime.isBefore(DateTime.now());
 
     return MouseRegion(
       onEnter: (_) => setState(() => _isHovered = true),
@@ -369,9 +371,9 @@ class _MatchCardState extends ConsumerState<_MatchCard> {
           child: Material(
             color: Colors.transparent,
             child: InkWell(
-              onTap: widget.match.isScheduled
-                  ? () => _showPredictionDialog(context, ref, prediction)
-                  : null,
+              onTap: isLocked
+                  ? null
+                  : () => _showPredictionDialog(context, ref, prediction),
               splashColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
               highlightColor: Colors.transparent,
               child: Padding(
@@ -430,46 +432,89 @@ class _MatchCardState extends ConsumerState<_MatchCard> {
                         ),
 
                         // Marcador / Predicción Central
-                        if (widget.match.isScheduled)
-                          Row(
-                            children: [
-                              _ScoreBox(score: prediction?.homeScore, hasPrediction: hasPrediction),
-                              const Padding(
-                                padding: EdgeInsets.symmetric(horizontal: 12),
-                                child: Text('VS', style: TextStyle(color: Colors.white24, fontWeight: FontWeight.bold, fontSize: 16)),
+                        if (!hasPrediction && isLocked)
+                          if (widget.match.homeScore != null && widget.match.awayScore != null)
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 20,
+                                vertical: 12,
                               ),
-                              _ScoreBox(score: prediction?.awayScore, hasPrediction: hasPrediction),
-                            ],
-                          )
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  colors: widget.match.isLive
+                                      ? [const Color(0x33FF3D57), const Color(0x11FF3D57)]
+                                      : [const Color(0x3300E5FF), const Color(0x1100E5FF)],
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                ),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: widget.match.isLive ? const Color(0x55FF3D57) : const Color(0x5500E5FF),
+                                ),
+                              ),
+                              child: Text(
+                                widget.match.scoreDisplay,
+                                style: TextStyle(
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.w900,
+                                  color: widget.match.isLive
+                                      ? const Color(0xFFFF3D57)
+                                      : Colors.white,
+                                ),
+                              ),
+                            )
+                          else
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: const [
+                                _ScoreBox(score: null, hasPrediction: false),
+                                Padding(
+                                  padding: EdgeInsets.symmetric(horizontal: 12),
+                                  child: Text('VS', style: TextStyle(color: Colors.white24, fontWeight: FontWeight.bold, fontSize: 16)),
+                                ),
+                                _ScoreBox(score: null, hasPrediction: false),
+                              ],
+                            )
                         else
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 20,
-                              vertical: 12,
-                            ),
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                colors: widget.match.isLive
-                                    ? [const Color(0x33FF3D57), const Color(0x11FF3D57)]
-                                    : [const Color(0x3300E5FF), const Color(0x1100E5FF)],
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
+                          Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  _ScoreBox(score: prediction?.homeScore, hasPrediction: hasPrediction),
+                                  const Padding(
+                                    padding: EdgeInsets.symmetric(horizontal: 12),
+                                    child: Text('VS', style: TextStyle(color: Colors.white24, fontWeight: FontWeight.bold, fontSize: 16)),
+                                  ),
+                                  _ScoreBox(score: prediction?.awayScore, hasPrediction: hasPrediction),
+                                ],
                               ),
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(
-                                color: widget.match.isLive ? const Color(0x55FF3D57) : const Color(0x5500E5FF),
-                              ),
-                            ),
-                            child: Text(
-                              widget.match.scoreDisplay,
-                              style: TextStyle(
-                                fontSize: 24,
-                                fontWeight: FontWeight.w900,
-                                color: widget.match.isLive
-                                    ? const Color(0xFFFF3D57)
-                                    : Colors.white,
-                              ),
-                            ),
+                              if (hasPrediction && (widget.match.homeScore != null && widget.match.awayScore != null)) ...[
+                                const SizedBox(height: 8),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                                  decoration: BoxDecoration(
+                                    color: Colors.black38,
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(color: Colors.white12),
+                                  ),
+                                  child: Text(
+                                    'Resultado: ${widget.match.homeScore} - ${widget.match.awayScore}',
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white70,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(height: 6),
+                                _PredictionResultIndicator(
+                                  prediction: prediction,
+                                  match: widget.match,
+                                ),
+                              ],
+                            ],
                           ),
 
                         // Equipo visitante
@@ -527,7 +572,7 @@ class _MatchCardState extends ConsumerState<_MatchCard> {
                         else
                           const SizedBox(), // Spacer
                         
-                        if (widget.match.isScheduled && prediction != null)
+                        if (prediction != null)
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                             decoration: BoxDecoration(
@@ -548,20 +593,22 @@ class _MatchCardState extends ConsumerState<_MatchCard> {
                                     fontWeight: FontWeight.w600,
                                   ),
                                 ),
-                                const SizedBox(width: 8),
-                                InkWell(
-                                  onTap: () {
-                                    ref
-                                        .read(predictionControllerProvider.notifier)
-                                        .deletePrediction(prediction.id, widget.match.id);
-                                  },
-                                  borderRadius: BorderRadius.circular(12),
-                                  child: const Icon(
-                                    Icons.close,
-                                    size: 16,
-                                    color: Colors.white54,
+                                if (!isLocked) ...[
+                                  const SizedBox(width: 8),
+                                  InkWell(
+                                    onTap: () {
+                                      ref
+                                          .read(predictionControllerProvider.notifier)
+                                          .deletePrediction(prediction.id, widget.match.id);
+                                    },
+                                    borderRadius: BorderRadius.circular(12),
+                                    child: const Icon(
+                                      Icons.close,
+                                      size: 16,
+                                      color: Colors.white54,
+                                    ),
                                   ),
-                                )
+                                ],
                               ],
                             ),
                           ),
@@ -681,3 +728,70 @@ class _TeamFlag extends StatelessWidget {
   }
 }
 
+// ---------------------------------------------------------------------------
+// Indicador visual de si acertó la predicción o no
+// ---------------------------------------------------------------------------
+class _PredictionResultIndicator extends StatelessWidget {
+  final Prediction prediction;
+  final Match match;
+
+  const _PredictionResultIndicator({
+    required this.prediction,
+    required this.match,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    if (match.homeScore == null || match.awayScore == null) {
+      return const SizedBox.shrink();
+    }
+
+    final predHome = prediction.homeScore;
+    final predAway = prediction.awayScore;
+    final realHome = match.homeScore!;
+    final realAway = match.awayScore!;
+
+    bool isExactMatch = predHome == realHome && predAway == realAway;
+
+    int predDiff = predHome - predAway;
+    int realDiff = realHome - realAway;
+
+    bool isCorrectOutcome = false;
+    if (predDiff > 0 && realDiff > 0) {
+      isCorrectOutcome = true;
+    } else if (predDiff < 0 && realDiff < 0) {
+      isCorrectOutcome = true;
+    } else if (predDiff == 0 && realDiff == 0) {
+      isCorrectOutcome = true;
+    }
+
+    if (isExactMatch) {
+      return Row(
+        mainAxisSize: MainAxisSize.min,
+        children: const [
+          Icon(Icons.star, color: Color(0xFFFFD700), size: 14),
+          SizedBox(width: 4),
+          Text('¡Resultado Exacto!', style: TextStyle(color: Color(0xFFFFD700), fontSize: 11, fontWeight: FontWeight.bold)),
+        ],
+      );
+    } else if (isCorrectOutcome) {
+      return Row(
+        mainAxisSize: MainAxisSize.min,
+        children: const [
+          Icon(Icons.check_circle, color: Color(0xFF22C55E), size: 14),
+          SizedBox(width: 4),
+          Text('¡Acierto!', style: TextStyle(color: Color(0xFF22C55E), fontSize: 11, fontWeight: FontWeight.bold)),
+        ],
+      );
+    } else {
+      return Row(
+        mainAxisSize: MainAxisSize.min,
+        children: const [
+          Icon(Icons.cancel, color: Color(0xFFFF3D57), size: 14),
+          SizedBox(width: 4),
+          Text('Fallaste', style: TextStyle(color: Color(0xFFFF3D57), fontSize: 11, fontWeight: FontWeight.bold)),
+        ],
+      );
+    }
+  }
+}
