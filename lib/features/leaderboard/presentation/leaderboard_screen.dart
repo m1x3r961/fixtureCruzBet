@@ -143,9 +143,47 @@ class _LeaderboardHeader extends ConsumerWidget {
       ),
       child: Column(
         children: [
-          // Título
+          // Título + botón volver
           Row(
             children: [
+              // ── Botón volver ────────────────────────────────────────
+              GestureDetector(
+                onTap: () => Navigator.of(context).pop(),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.2),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: const [
+                      Icon(Icons.arrow_back_ios_new_rounded,
+                          color: Colors.white70, size: 14),
+                      SizedBox(width: 4),
+                      Text(
+                        'Volver',
+                        style: TextStyle(
+                          color: Colors.white70,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+
+              // ── Ícono trofeo ─────────────────────────────────────────
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
@@ -165,6 +203,8 @@ class _LeaderboardHeader extends ConsumerWidget {
                     color: Colors.white, size: 24),
               ),
               const SizedBox(width: 14),
+
+              // ── Título ───────────────────────────────────────────────
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: const [

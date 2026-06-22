@@ -24,11 +24,11 @@ def map_match_status(match_status_int):
     # 3 = EN VIVO?
     # Hay varios códigos, si tiene score y status=0, es finished
     if match_status_int == 0:
-        return 'FINISHED'
+        return 'finished'
     elif match_status_int == 3:
-        return 'LIVE'
+        return 'live'
     else:
-        return 'SCHEDULED'
+        return 'scheduled'
 
 def map_team_name(name):
     # Puedes agregar traducciones manuales si en tu BD difieren del inglés
