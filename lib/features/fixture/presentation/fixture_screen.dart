@@ -767,34 +767,62 @@ class _PredictionResultIndicator extends StatelessWidget {
       isCorrectOutcome = true;
     }
 
+    // Determinar puntos: usar el valor de BD si existe, sino calcular
+    final int pts = prediction.pointsEarned ??
+        (isExactMatch ? 3 : isCorrectOutcome ? 1 : 0);
+
+    late Color color;
+    late IconData icon;
+    late String label;
+
     if (isExactMatch) {
-      return Row(
-        mainAxisSize: MainAxisSize.min,
-        children: const [
-          Icon(Icons.star, color: Color(0xFFFFD700), size: 14),
-          SizedBox(width: 4),
-          Text('¡Resultado Exacto!', style: TextStyle(color: Color(0xFFFFD700), fontSize: 11, fontWeight: FontWeight.bold)),
-        ],
-      );
+      color = const Color(0xFFFFD700);
+      icon = Icons.star;
+      label = '¡Exacto!';
     } else if (isCorrectOutcome) {
-      return Row(
-        mainAxisSize: MainAxisSize.min,
-        children: const [
-          Icon(Icons.check_circle, color: Color(0xFF22C55E), size: 14),
-          SizedBox(width: 4),
-          Text('¡Acierto!', style: TextStyle(color: Color(0xFF22C55E), fontSize: 11, fontWeight: FontWeight.bold)),
-        ],
-      );
+      color = const Color(0xFF22C55E);
+      icon = Icons.check_circle;
+      label = '¡Acierto!';
     } else {
-      return Row(
-        mainAxisSize: MainAxisSize.min,
-        children: const [
-          Icon(Icons.cancel, color: Color(0xFFFF3D57), size: 14),
-          SizedBox(width: 4),
-          Text('Fallaste', style: TextStyle(color: Color(0xFFFF3D57), fontSize: 11, fontWeight: FontWeight.bold)),
-        ],
-      );
+      color = const Color(0xFFFF3D57);
+      icon = Icons.cancel;
+      label = 'Fallaste';
     }
+
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, color: color, size: 14),
+        const SizedBox(width: 4),
+        Text(
+          label,
+          style: TextStyle(
+            color: color,
+            fontSize: 11,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(width: 8),
+        // Badge de puntos
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+          decoration: BoxDecoration(
+            color: color.withValues(alpha: 0.15),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: color.withValues(alpha: 0.5)),
+          ),
+          child: Text(
+            pts > 0 ? '+$pts pts' : '0 pts',
+            style: TextStyle(
+              color: color,
+              fontSize: 11,
+              fontWeight: FontWeight.w900,
+              letterSpacing: 0.3,
+            ),
+          ),
+        ),
+      ],
+    );
   }
 }
 
