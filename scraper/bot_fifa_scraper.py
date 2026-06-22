@@ -69,7 +69,8 @@ def map_team_name(name):
         "England": "Inglaterra",
         "Panama": "Panamá",
         "Uzbekistan": "Uzbekistán",
-        "Croatia": "Croacia"
+        "Croatia": "Croacia",
+        "Scotland": "Escocia"
     }
     return translations.get(name, name)
 

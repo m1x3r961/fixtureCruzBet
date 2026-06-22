@@ -64,6 +64,8 @@ class _FixtureScreenState extends ConsumerState<FixtureScreen>
         ).animate().fadeIn(duration: 600.ms).slideY(begin: -0.2, curve: Curves.easeOutQuad),
         centerTitle: true,
         actions: [
+          // Botón de Ranking / Leaderboard
+          _LeaderboardButton(),
           Consumer(
             builder: (context, ref, child) {
               final profileAsync = ref.watch(currentProfileProvider);
@@ -793,5 +795,95 @@ class _PredictionResultIndicator extends StatelessWidget {
         ],
       );
     }
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Botón de Ranking/Leaderboard con efecto glow animado
+// ---------------------------------------------------------------------------
+class _LeaderboardButton extends StatefulWidget {
+  @override
+  State<_LeaderboardButton> createState() => _LeaderboardButtonState();
+}
+
+class _LeaderboardButtonState extends State<_LeaderboardButton>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _glowController;
+  late Animation<double> _glowAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _glowController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1800),
+    )..repeat(reverse: true);
+    _glowAnimation = Tween<double>(begin: 0.4, end: 1.0).animate(
+      CurvedAnimation(parent: _glowController, curve: Curves.easeInOut),
+    );
+  }
+
+  @override
+  void dispose() {
+    _glowController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _glowAnimation,
+      builder: (context, child) {
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 10),
+          child: GestureDetector(
+            onTap: () => context.push(AppRoutes.leaderboard),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    const Color(0xFFFFD700).withValues(alpha: 0.25 * _glowAnimation.value),
+                    const Color(0xFFFFA500).withValues(alpha: 0.15 * _glowAnimation.value),
+                  ],
+                ),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: const Color(0xFFFFD700).withValues(alpha: 0.7 * _glowAnimation.value),
+                  width: 1.5,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFFFFD700).withValues(alpha: 0.3 * _glowAnimation.value),
+                    blurRadius: 12,
+                    spreadRadius: 2,
+                  ),
+                ],
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.emoji_events,
+                    color: const Color(0xFFFFD700).withValues(alpha: 0.7 + 0.3 * _glowAnimation.value),
+                    size: 18,
+                  ),
+                  const SizedBox(width: 5),
+                  Text(
+                    'Ranking',
+                    style: TextStyle(
+                      color: const Color(0xFFFFD700).withValues(alpha: 0.8 + 0.2 * _glowAnimation.value),
+                      fontWeight: FontWeight.w800,
+                      fontSize: 12,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
   }
 }

@@ -179,7 +179,7 @@ class _PredictionForMatchProviderElement
 }
 
 String _$predictionControllerHash() =>
-    r'd1eb51866fb923d144a955d8bd610498bd517e72';
+    r'65044eab64842c64e3bb311f9197dac118a95b22';
 
 /// See also [PredictionController].
 @ProviderFor(PredictionController)

@@ -10,6 +10,7 @@ import '../../features/admin/presentation/admin_dashboard_screen.dart';
 import '../../features/admin/presentation/admin_user_detail_screen.dart';
 import '../../features/admin/domain/admin_models.dart';
 import '../../features/auth/data/profile_repository.dart';
+import '../../features/leaderboard/presentation/leaderboard_screen.dart';
 import '../providers/supabase_provider.dart';
 
 part 'app_router.g.dart';
@@ -21,6 +22,7 @@ abstract class AppRoutes {
   static const login = '/login';
   static const fixture = '/fixture';
   static const admin = '/admin';
+  static const leaderboard = '/leaderboard';
 }
 
 // ---------------------------------------------------------------------------
@@ -86,6 +88,13 @@ GoRouter appRouter(Ref ref) {
         name: 'fixture',
         pageBuilder: (context, state) => const NoTransitionPage(
           child: FixtureScreen(),
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.leaderboard,
+        name: 'leaderboard',
+        pageBuilder: (context, state) => const MaterialPage(
+          child: LeaderboardScreen(),
         ),
       ),
       GoRoute(
