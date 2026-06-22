@@ -2,7 +2,6 @@
 .dart_tool/
 build/
 !build/web/
-build/web/assets/.env
 
 # Variables de entorno sensibles
 .env
