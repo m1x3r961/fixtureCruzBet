@@ -29,6 +29,27 @@ STAGE_MAP = {
     "Final":                    "final",
 }
 
+FLAG_CODES = {
+    "México": "mx", "Sudáfrica": "za", "Corea del Sur": "kr", "Rep. Checa": "cz",
+    "Canadá": "ca", "Bosnia y Herzegovina": "ba", "Estados Unidos": "us", "Catar": "qa",
+    "Suiza": "ch", "Brasil": "br", "Marruecos": "ma", "Haití": "ht", "Turquía": "tr",
+    "Alemania": "de", "Curazao": "cw", "Países Bajos": "nl", "Japón": "jp",
+    "Costa de Marfil": "ci", "Suecia": "se", "Túnez": "tn", "España": "es",
+    "Bélgica": "be", "Egipto": "eg", "Arabia Saudita": "sa", "Irán": "ir",
+    "Nueva Zelanda": "nz", "Francia": "fr", "Irak": "iq", "Noruega": "no",
+    "Argelia": "dz", "Jordania": "jo", "RD Congo": "cd", "Inglaterra": "gb-eng",
+    "Panamá": "pa", "Uzbekistán": "uz", "Croacia": "hr", "Escocia": "gb-sct",
+    "Ecuador": "ec", "Paraguay": "py", "Austria": "at", "Portugal": "pt",
+    "Australia": "au", "Argentina": "ar", "Colombia": "co", "Ghana": "gh",
+    "Senegal": "sn", "Cabo Verde": "cv", "Uruguay": "uy", "Polonia": "pl",
+    "Dinamarca": "dk", "Nigeria": "ng", "Camerún": "cm", "Serbia": "rs",
+    "Rumania": "ro", "Ucrania": "ua", "Georgia": "ge", "Indonesia": "id",
+}
+
+def flag_url(team): 
+    code = FLAG_CODES.get(team)
+    return f"https://flagcdn.com/w320/{code}.png" if code else None
+
 TEAM_TRANSLATIONS = {
     "South Africa": "Sudáfrica", "Mexico": "México", "Korea Republic": "Corea del Sur",
     "Czechia": "Rep. Checa", "Canada": "Canadá", "Bosnia and Herzegovina": "Bosnia y Herzegovina",
@@ -118,6 +139,8 @@ def main():
             "group_name":  group_name,
             "match_time":  match_time,
             "status":      status,
+            "home_flag":   flag_url(home_es),
+            "away_flag":   flag_url(away_es),
         }
         if home_score is not None:
             row["home_score"] = home_score
