@@ -29,12 +29,14 @@ class _FixtureScreenState extends ConsumerState<FixtureScreen>
   late final TabController _tabController;
 
   static const _tabs = [
-    (label: 'Todos', stage: null),
-    (label: 'Grupos', stage: 'group'),
-    (label: 'Octavos', stage: 'round_of_16'),
-    (label: 'Cuartos', stage: 'quarter'),
-    (label: 'Semis', stage: 'semi'),
-    (label: 'Final', stage: 'final'),
+    (label: 'Todos',    stage: null),
+    (label: 'Grupos',   stage: 'group'),
+    (label: '16avos',   stage: 'round_of_32'),   // Fase nueva del Mundial 2026
+    (label: 'Octavos',  stage: 'round_of_16'),
+    (label: 'Cuartos',  stage: 'quarter'),
+    (label: 'Semis',    stage: 'semi'),
+    (label: '3er/4to',  stage: 'third_place'),
+    (label: 'Final',    stage: 'final'),
   ];
 
   @override

@@ -18,17 +18,29 @@ supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 FIFA_API_URL = "https://api.fifa.com/api/v3/calendar/matches?language=en&count=500&idSeason=285023"
 
 def map_match_status(match_status_int):
-    # En la API de FIFA: 
+    # En la API de FIFA:
     # 0 = FINISHED (FT)
-    # 1 = NO INICIADO / SCHEDULED?
-    # 3 = EN VIVO?
-    # Hay varios códigos, si tiene score y status=0, es finished
+    # 1 = NO INICIADO / SCHEDULED
+    # 3 = EN VIVO
     if match_status_int == 0:
         return 'finished'
     elif match_status_int == 3:
         return 'live'
     else:
         return 'scheduled'
+
+def map_stage(stage_name_en):
+    """Mapea el nombre de fase de FIFA API al valor de stage en la BD."""
+    stage_map = {
+        "First Stage":              "group",
+        "Round of 32":              "round_of_32",   # 16avos de final (Mundial 2026)
+        "Round of 16":              "round_of_16",   # Octavos de final
+        "Quarter-final":            "quarter",
+        "Semi-final":               "semi",
+        "Play-off for third place": "third_place",
+        "Final":                    "final",
+    }
+    return stage_map.get(stage_name_en, "group")
 
 def map_team_name(name):
     # Puedes agregar traducciones manuales si en tu BD difieren del inglés
@@ -107,20 +119,21 @@ def main():
     print(f"Se encontraron {len(db_matches)} partidos en Supabase.")
 
     updated_count = 0
+    skipped_no_match = 0
 
     for match in matches:
         home_data = match.get('Home')
         away_data = match.get('Away')
-        
+
         if not home_data or not away_data:
             continue
-            
+
         home_team_en = home_data.get('TeamName', [{}])[0].get('Description')
         away_team_en = away_data.get('TeamName', [{}])[0].get('Description')
-        
+
         if not home_team_en or not away_team_en:
             continue
-            
+
         home_score = match.get('HomeTeamScore')
         away_score = match.get('AwayTeamScore')
         match_status = map_match_status(match.get('MatchStatus'))
@@ -128,32 +141,53 @@ def main():
         home_team_es = map_team_name(home_team_en)
         away_team_es = map_team_name(away_team_en)
 
-        # Buscar el partido en nuestra BD
+        # Obtener la fase del partido desde la API
+        stage_raw = match.get('StageName', [{}])[0].get('Description', '') if match.get('StageName') else ''
+        stage = map_stage(stage_raw)
+
+        # 1. Buscar el partido en la BD por nombre de equipos (fase de grupos y KO con equipos confirmados)
         target_match = None
         for dbm in db_matches:
             if dbm['home_team'] == home_team_es and dbm['away_team'] == away_team_es:
                 target_match = dbm
                 break
 
-        if target_match:
-            # Si el marcador es nulo pero en FIFA ya hay marcador, actualizamos
-            if home_score is not None and away_score is not None:
-                # Verificar si ya estaban actualizados
-                if target_match.get('home_score') != home_score or target_match.get('away_score') != away_score or target_match.get('status') != match_status:
-                    print(f"Actualizando: {home_team_es} {home_score} - {away_score} {away_team_es} ({match_status})")
-                    
-                    supabase.table('matches').update({
-                        'home_score': home_score,
-                        'away_score': away_score,
-                        'status': match_status
-                    }).eq('id', target_match['id']).execute()
-                    
-                    updated_count += 1
-                else:
-                    # Ya está actualizado
-                    pass
+        if not target_match:
+            skipped_no_match += 1
+            if home_score is not None:
+                print(f"[!] No encontrado en BD: {home_team_es} vs {away_team_es} (Stage: {stage_raw})")
+            continue
 
-    print(f"Proceso completado. {updated_count} partidos actualizados.")
+        # 2. Determinar si hay algo nuevo que actualizar
+        needs_update = False
+        update_payload = {}
+
+        # Actualizar score y status cuando hay resultado
+        if home_score is not None and away_score is not None:
+            if (target_match.get('home_score') != home_score or
+                    target_match.get('away_score') != away_score or
+                    target_match.get('status') != match_status):
+                update_payload['home_score'] = home_score
+                update_payload['away_score'] = away_score
+                update_payload['status'] = match_status
+                needs_update = True
+
+        # Actualizar stage si la BD lo tiene incorrecto (importante para KO rounds)
+        if target_match.get('stage') != stage and stage != 'group':
+            update_payload['stage'] = stage
+            needs_update = True
+
+        # Actualizar status a 'live' aunque aún no haya score
+        if match_status == 'live' and target_match.get('status') != 'live':
+            update_payload['status'] = 'live'
+            needs_update = True
+
+        if needs_update:
+            print(f"Actualizando: {home_team_es} {home_score} - {away_score} {away_team_es} | {stage_raw} | {match_status}")
+            supabase.table('matches').update(update_payload).eq('id', target_match['id']).execute()
+            updated_count += 1
+
+    print(f"Proceso completado. {updated_count} partidos actualizados. {skipped_no_match} sin coincidencia en BD.")
 
 if __name__ == "__main__":
     main()

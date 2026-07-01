@@ -14,7 +14,7 @@ part 'match_model.g.dart';
 /// - away_score: int? (null si no ha iniciado)
 /// - match_time: timestamptz
 /// - status: text ('scheduled' | 'live' | 'finished')
-/// - stage: text? ('group' | 'round_of_16' | 'quarter' | 'semi' | 'final')
+/// - stage: text? ('group' | 'round_of_32' | 'round_of_16' | 'quarter' | 'semi' | 'third_place' | 'final')
 /// - group_name: text? (ej. 'Grupo A')
 /// - api_football_id: int? (ID del partido en API-Football para sincronización)
 @freezed
