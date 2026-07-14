@@ -423,10 +423,18 @@ class _MatchCardState extends ConsumerState<_MatchCard> {
                               Text(
                                 widget.match.homeTeam,
                                 textAlign: TextAlign.center,
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 14,
-                                  fontWeight: FontWeight.w700,
+                                  fontWeight: widget.match.homeTeam == 'Por definir'
+                                      ? FontWeight.w400
+                                      : FontWeight.w700,
                                   letterSpacing: 0.3,
+                                  color: widget.match.homeTeam == 'Por definir'
+                                      ? Colors.white38
+                                      : Colors.white,
+                                  fontStyle: widget.match.homeTeam == 'Por definir'
+                                      ? FontStyle.italic
+                                      : FontStyle.normal,
                                 ),
                                 maxLines: 2,
                                 overflow: TextOverflow.ellipsis,
@@ -530,10 +538,18 @@ class _MatchCardState extends ConsumerState<_MatchCard> {
                               Text(
                                 widget.match.awayTeam,
                                 textAlign: TextAlign.center,
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 14,
-                                  fontWeight: FontWeight.w700,
+                                  fontWeight: widget.match.awayTeam == 'Por definir'
+                                      ? FontWeight.w400
+                                      : FontWeight.w700,
                                   letterSpacing: 0.3,
+                                  color: widget.match.awayTeam == 'Por definir'
+                                      ? Colors.white38
+                                      : Colors.white,
+                                  fontStyle: widget.match.awayTeam == 'Por definir'
+                                      ? FontStyle.italic
+                                      : FontStyle.normal,
                                 ),
                                 maxLines: 2,
                                 overflow: TextOverflow.ellipsis,
@@ -685,8 +701,11 @@ class _TeamFlag extends StatelessWidget {
   final String team;
   const _TeamFlag({this.flag, required this.team});
 
+  bool get _isTbd => team == 'Por definir';
+
   @override
   Widget build(BuildContext context) {
+    if (_isTbd) return _TbdShield();
     if (flag != null) {
       return Container(
         decoration: BoxDecoration(
@@ -726,6 +745,73 @@ class _TeamFlag extends StatelessWidget {
         child: Text(
           team.isNotEmpty ? team[0] : '?',
           style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 18, color: Colors.white70),
+        ),
+      ),
+    );
+  }
+}
+
+// Escudo vacío animado para equipo por confirmar
+class _TbdShield extends StatefulWidget {
+  @override
+  State<_TbdShield> createState() => _TbdShieldState();
+}
+
+class _TbdShieldState extends State<_TbdShield>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _ctrl;
+  late final Animation<double> _pulse;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1400),
+    )..repeat(reverse: true);
+    _pulse = Tween<double>(begin: 0.4, end: 1.0).animate(
+      CurvedAnimation(parent: _ctrl, curve: Curves.easeInOut),
+    );
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _pulse,
+      builder: (_, __) => Container(
+        width: 48,
+        height: 48,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: const Color(0xFF1C2A36),
+          border: Border.all(
+            color: Colors.white.withValues(alpha: 0.15 + 0.25 * _pulse.value),
+            width: 2,
+            strokeAlign: BorderSide.strokeAlignInside,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFF00E5FF).withValues(alpha: 0.08 * _pulse.value),
+              blurRadius: 10,
+              spreadRadius: 2,
+            ),
+          ],
+        ),
+        child: Center(
+          child: Text(
+            '?',
+            style: TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.w900,
+              color: Colors.white.withValues(alpha: 0.25 + 0.4 * _pulse.value),
+            ),
+          ),
         ),
       ),
     );
